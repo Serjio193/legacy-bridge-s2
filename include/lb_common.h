@@ -38,13 +38,13 @@ static inline void lbSetDefaults(LBConfig *cfg) {
   cfg->version = LB_CONFIG_VERSION;
   strlcpy(cfg->deviceName, LB_DEFAULT_DEVICE_NAME, sizeof(cfg->deviceName));
   strlcpy(cfg->packBaseUrl, LB_DEFAULT_PACK_BASE_URL, sizeof(cfg->packBaseUrl));
-  cfg->dataPin = 11;
-  cfg->clockPin = 7;
-  cfg->oePin = 18;
-  cfg->powerPin = 9;
+  cfg->dataPin = 7;
+  cfg->clockPin = 9;
+  cfg->oePin = 11;
+  cfg->powerPin = 3;
   cfg->ledCount = 60;
   cfg->ledBrightness = 24;
-  cfg->oeActiveLow = 1;
+  cfg->oeActiveLow = 0;
   cfg->powerActiveHigh = 1;
   cfg->powerOnDelayMs = 50;
   cfg->powerOffDelayMs = 100;

@@ -1,3 +1,3 @@
 #pragma once
 
-#define LB_FIRMWARE_VERSION "v0.1.3"
+#define LB_FIRMWARE_VERSION "v0.1.4"

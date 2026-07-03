@@ -24,7 +24,7 @@ export function PowerPage({ vm }) {
             onClick={() => {
               const next = !relayEnabled;
               setRelayEnabled(next);
-              if (next && form.powerPin < 0) setForm({ ...form, powerPin: 9 });
+              if (next && form.powerPin < 0) setForm({ ...form, powerPin: 3 });
             }}
             aria-pressed={relayEnabled}
             aria-label="Использовать реле"

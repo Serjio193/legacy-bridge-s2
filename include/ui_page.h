@@ -119,6 +119,13 @@ static constexpr const char UI_HTML[] PROGMEM = R"html(
     .led-config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px}
     .led-fixed-field,.led-config-grid input,.led-config-grid select,.led-map-options select{width:100%;height:48px;display:flex;align-items:center;padding:0 13px;border:1px solid var(--line);border-radius:14px;background:#0e1726;color:var(--text)}
     .led-config-grid input,.led-config-grid select{outline:none}
+    .buffer-card{background:linear-gradient(180deg,rgba(10,22,37,.96),rgba(7,12,20,.98))}
+    .buffer-copy{color:var(--muted);font-size:12px;line-height:1.55}
+    .buffer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    .buffer-grid select{width:100%;height:48px;padding:0 13px;border:1px solid var(--line);border-radius:14px;background:#0e1726;color:var(--text);outline:none}
+    .buffer-state{display:grid;grid-template-columns:1fr auto;gap:7px 12px;margin-top:14px;padding:12px;border:1px solid rgba(74,225,140,.16);border-radius:14px;background:rgba(74,225,140,.05)}
+    .buffer-state span{color:var(--muted);font-size:12px}
+    .buffer-state strong{color:var(--green);font-size:12px}
     .led-steppers{display:grid;gap:12px}
     .led-stepper-row{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:12px;color:var(--text);font-size:14px}
     .led-stepper{height:48px;display:grid;grid-template-columns:46px 1fr 46px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.025)}

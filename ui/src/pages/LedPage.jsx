@@ -13,6 +13,8 @@ export function LedPage({ vm }) {
   } = vm;
   const sideNames = { top: "Верх", right: "Право", bottom: "Низ", left: "Лево" };
   const currentDetectSide = ledDetectStep < 4 ? ledDetectOrder[ledDetectStep] : null;
+  const oeEnabledLevel = form.oeActiveLow ? "LOW" : "HIGH";
+  const oeDisabledLevel = form.oeActiveLow ? "HIGH" : "LOW";
 
   return (
     <>
@@ -57,6 +59,17 @@ export function LedPage({ vm }) {
               {colorOrders.map((order, index) => <option key={order} value={index}>{order}</option>)}
             </select>
           </div>
+          <div><label>Питание ленты</label><div className="led-fixed-field">5 V</div></div>
+        </div>
+      </Card>
+
+      <Card className="led-card buffer-card">
+        <SectionTitle icon="▤">SN74AHCT125N</SectionTitle>
+        <div className="buffer-copy">
+          Буфер 3.3V → 5V для линий DATA и CLOCK. Управление идёт через вход OE:
+          GPIO HIGH открывает 2N7002, тянет /OE к GND и включает выходы 74.
+        </div>
+        <div className="buffer-grid">
           <div>
             <label>GPIO OE</label>
             <select value={form.oePin} onChange={(event) => setForm({ ...form, oePin: Number(event.target.value) })}>
@@ -70,7 +83,12 @@ export function LedPage({ vm }) {
               <option value="0">HIGH</option>
             </select>
           </div>
-          <div><label>Питание ленты</label><div className="led-fixed-field">5 V</div></div>
+        </div>
+        <div className="buffer-state">
+          <span>Разрешить выходы</span>
+          <strong>{oeEnabledLevel}</strong>
+          <span>Отключить выходы</span>
+          <strong>{oeDisabledLevel}</strong>
         </div>
       </Card>
 

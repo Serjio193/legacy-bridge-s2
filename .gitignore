@@ -1,4 +1,5 @@
 .pio/
+.venv/
 dist/
 ui/node_modules/
 .publish-gh-pages/
