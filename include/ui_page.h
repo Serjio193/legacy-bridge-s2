@@ -7,7 +7,7 @@ static constexpr const char UI_HTML[] PROGMEM = R"html(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#05080f">
-  <title>lg_apa102</title>
+  <title>apa102</title>
   <style>
     :root{
       color-scheme: dark;

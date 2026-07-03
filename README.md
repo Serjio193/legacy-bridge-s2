@@ -22,12 +22,23 @@ open-source components. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
 
 ## Default pins
 
-- DATA: GPIO11
-- CLOCK: GPIO7
-- OE: GPIO18
-- POWER: GPIO9
+- POWER MOSFET: GPIO3, `LOW = OFF`, `HIGH = ON`
+- OE SN74AHCT125N: GPIO11, `LOW = OFF`, `HIGH = ON`
+- APA102 DATA: GPIO7, SPI DATA
+- APA102 CLOCK: GPIO9, SPI CLOCK
 
 GPIO46 is intentionally rejected.
+
+## First setup AP
+
+- SSID / device name: `apa102` + full device MAC without separators.
+- AP password: `APA102` + last 4 hex characters of the device MAC.
+
+## Recovery entry
+
+The hardware RESET/EN pin cannot be read by firmware while it is held low. For
+button-only recovery, press reset twice within 5 seconds after boot. The second
+boot switches to the factory recovery partition.
 
 ## Build
 

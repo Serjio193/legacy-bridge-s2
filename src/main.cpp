@@ -22,6 +22,10 @@ static char apiPin[17] = "";
 static bool apActive = false;
 static bool apWindowExpired = false;
 static constexpr unsigned long AP_WINDOW_MS = 10UL * 60UL * 1000UL;
+static constexpr uint32_t RECOVERY_RESET_MAGIC = 0x52454332UL;
+static RTC_NOINIT_ATTR uint32_t recoveryResetMagic;
+static RTC_NOINIT_ATTR uint32_t recoveryResetMagicInv;
+static unsigned long recoveryResetClearAtMs = 0;
 static bool spiReady = false;
 static bool powerState = false;
 static bool outputsEnabled = false;
@@ -242,7 +246,7 @@ static void savePowerSettings() {
 #if 0
 static const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>lg_apa102</title>
+<title>apa102</title>
 <style>
 body{margin:0;font-family:system-ui,sans-serif;background:radial-gradient(circle at top,#1a2240,#0b1020 60%);color:#e5eefc}
 .w{max-width:1060px;margin:0 auto;padding:20px}
@@ -266,7 +270,7 @@ button.d{background:#ff7a7a;color:#200}
 </style></head><body><div class="w">
 <div class="c">
   <div class="h">
-    <div><div class="t">lg_apa102</div><div class="m">ESP32-S2 Mini protected OTA + recovery</div></div>
+    <div><div class="t">apa102</div><div class="m">ESP32-S2 Mini protected OTA + recovery</div></div>
     <div class="st" id="status">Loading...</div>
   </div>
 </div>
@@ -754,7 +758,9 @@ static void startAp() {
     return;
   }
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(LB_DEFAULT_AP_SSID, LB_DEFAULT_AP_PASS);
+  const String apSsid = cfg.deviceName[0] ? String(cfg.deviceName) : lbDefaultApSsid();
+  const String apPass = lbDefaultApPass();
+  WiFi.softAP(apSsid.c_str(), apPass.c_str());
   apActive = true;
   addLog("Access point started");
 }
@@ -895,6 +901,37 @@ static void handleReboot() {
   server.send(200, "application/json", "{\"ok\":true}");
   delay(250);
   ESP.restart();
+}
+
+static bool bootRecoveryPartition() {
+  const esp_partition_t *part = factoryPartition();
+  if (!part) {
+    addLog("Recovery partition not found");
+    return false;
+  }
+  esp_err_t err = esp_ota_set_boot_partition(part);
+  if (err != ESP_OK) {
+    addLog("Recovery boot select failed");
+    return false;
+  }
+  delay(100);
+  ESP.restart();
+  return true;
+}
+
+static void handleDoubleResetRecovery() {
+  const bool armed = recoveryResetMagic == RECOVERY_RESET_MAGIC &&
+                     recoveryResetMagicInv == ~RECOVERY_RESET_MAGIC;
+  recoveryResetMagic = 0;
+  recoveryResetMagicInv = 0;
+  if (armed) {
+    addLog("Double reset detected: entering recovery");
+    bootRecoveryPartition();
+    return;
+  }
+  recoveryResetMagic = RECOVERY_RESET_MAGIC;
+  recoveryResetMagicInv = ~RECOVERY_RESET_MAGIC;
+  recoveryResetClearAtMs = millis() + LB_RECOVERY_DOUBLE_RESET_MS;
 }
 
 static void handleUpdateCheck() {
@@ -1207,6 +1244,7 @@ static void setupWeb() {
 
 void setup() {
   addLog("Firmware boot");
+  handleDoubleResetRecovery();
   lbLoadConfig(&cfg);
   lbLoadApiPin(apiPin, sizeof(apiPin));
   if (!lbValidateConfig(&cfg)) lbSetDefaults(&cfg);
@@ -1228,6 +1266,11 @@ void loop() {
   handleHyperHdrSerial();
   server.handleClient();
   const unsigned long now = millis();
+  if (recoveryResetClearAtMs && static_cast<long>(now - recoveryResetClearAtMs) >= 0) {
+    recoveryResetMagic = 0;
+    recoveryResetMagicInv = 0;
+    recoveryResetClearAtMs = 0;
+  }
   if (apActive && now >= AP_WINDOW_MS) {
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_STA);

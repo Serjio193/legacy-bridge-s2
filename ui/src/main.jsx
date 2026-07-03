@@ -11,7 +11,7 @@ import { PowerPage } from "./pages/PowerPage.jsx";
 import { SettingsPage } from "./pages/SettingsPage.jsx";
 
 const initialForm = {
-  deviceName: "lg_apa102",
+  deviceName: "apa102aabbccddeeff",
   wifiSsid: "",
   wifiPass: "",
   packBaseUrl: "https://serjio193.github.io/lg_apa102/latest/",
@@ -449,7 +449,7 @@ function App() {
           <div className="brand">
             <PowerButton on={powerOn} onToggle={togglePower} />
             <div>
-              <h1>{form.deviceName || "lg_apa102"}</h1>
+              <h1>{form.deviceName || "apa102aabbccddeeff"}</h1>
               <p>HyperHDR-compatible light controller</p>
             </div>
           </div>

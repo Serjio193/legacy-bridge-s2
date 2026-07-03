@@ -6,11 +6,38 @@
 static constexpr uint32_t LB_CONFIG_MAGIC = 0x4C425332UL;
 static constexpr uint16_t LB_CONFIG_VERSION = 1;
 static constexpr const char *LB_PREFS_NS = "lb2";
-static constexpr const char *LB_DEFAULT_AP_SSID = "LB-SETUP";
-static constexpr const char *LB_DEFAULT_AP_PASS = "lb123456";
-static constexpr const char *LB_DEFAULT_DEVICE_NAME = "lg_apa102";
+static constexpr const char *LB_DEFAULT_DEVICE_PREFIX = "apa102";
+static constexpr const char *LB_DEFAULT_AP_PASS_PREFIX = "APA102";
 static constexpr const char *LB_DEFAULT_PACK_BASE_URL =
     "https://serjio193.github.io/lg_apa102/latest/";
+static constexpr uint32_t LB_RECOVERY_DOUBLE_RESET_MS = 5000;
+
+static inline String lbDeviceMacHex() {
+  const uint64_t mac = ESP.getEfuseMac();
+  char text[13];
+  snprintf(text, sizeof(text), "%04X%08X",
+           static_cast<uint16_t>(mac >> 32),
+           static_cast<uint32_t>(mac));
+  return String(text);
+}
+
+static inline String lbDefaultDeviceName() {
+  String name(LB_DEFAULT_DEVICE_PREFIX);
+  name += lbDeviceMacHex();
+  name.toLowerCase();
+  return name;
+}
+
+static inline String lbDefaultApSsid() {
+  return lbDefaultDeviceName();
+}
+
+static inline String lbDefaultApPass() {
+  const String mac = lbDeviceMacHex();
+  String pass(LB_DEFAULT_AP_PASS_PREFIX);
+  pass += mac.substring(mac.length() >= 4 ? mac.length() - 4 : 0);
+  return pass;
+}
 
 struct LBConfig {
   uint32_t magic;
@@ -36,7 +63,8 @@ static inline void lbSetDefaults(LBConfig *cfg) {
   memset(cfg, 0, sizeof(*cfg));
   cfg->magic = LB_CONFIG_MAGIC;
   cfg->version = LB_CONFIG_VERSION;
-  strlcpy(cfg->deviceName, LB_DEFAULT_DEVICE_NAME, sizeof(cfg->deviceName));
+  const String defaultName = lbDefaultDeviceName();
+  strlcpy(cfg->deviceName, defaultName.c_str(), sizeof(cfg->deviceName));
   strlcpy(cfg->packBaseUrl, LB_DEFAULT_PACK_BASE_URL, sizeof(cfg->packBaseUrl));
   cfg->dataPin = 7;
   cfg->clockPin = 9;
@@ -54,8 +82,9 @@ static inline void lbNormalizeDefaults(LBConfig *cfg) {
   if (!cfg) return;
   cfg->magic = LB_CONFIG_MAGIC;
   cfg->version = LB_CONFIG_VERSION;
-  if (cfg->deviceName[0] == '\0') {
-    strlcpy(cfg->deviceName, LB_DEFAULT_DEVICE_NAME, sizeof(cfg->deviceName));
+  if (cfg->deviceName[0] == '\0' || strcmp(cfg->deviceName, "lg_apa102") == 0) {
+    const String defaultName = lbDefaultDeviceName();
+    strlcpy(cfg->deviceName, defaultName.c_str(), sizeof(cfg->deviceName));
   }
   if (cfg->packBaseUrl[0] == '\0') {
     strlcpy(cfg->packBaseUrl, LB_DEFAULT_PACK_BASE_URL, sizeof(cfg->packBaseUrl));
@@ -153,9 +182,9 @@ static inline bool lbIsValidOutputPin(int16_t pin) {
 }
 
 static inline String lbHostnameFromName(const char *name) {
-  String host = name ? String(name) : String(LB_DEFAULT_DEVICE_NAME);
+  String host = name ? String(name) : lbDefaultDeviceName();
   host.trim();
-  if (host.length() == 0) host = LB_DEFAULT_DEVICE_NAME;
+  if (host.length() == 0) host = lbDefaultDeviceName();
   host.toLowerCase();
   for (size_t i = 0; i < host.length(); ++i) {
     char c = host[i];

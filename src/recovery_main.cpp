@@ -18,10 +18,13 @@ static bool apActive = false;
 static char lastError[128] = "idle";
 static char apiPin[17] = "";
 static constexpr unsigned long RECOVERY_AP_WINDOW_MS = 10UL * 60UL * 1000UL;
+static constexpr uint32_t RECOVERY_RESET_MAGIC = 0x52454332UL;
+static RTC_NOINIT_ATTR uint32_t recoveryResetMagic;
+static RTC_NOINIT_ATTR uint32_t recoveryResetMagicInv;
 
 static const char RECOVERY_HTML[] PROGMEM = R"rawliteral(
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>lg_apa102 Recovery</title>
+<title>apa102 Recovery</title>
 <style>
 body{margin:0;font-family:system-ui,sans-serif;background:radial-gradient(circle at top,#3a1520,#10070a 60%);color:#ffeef2}
 .w{max-width:900px;margin:0 auto;padding:20px}
@@ -35,7 +38,7 @@ button.s{background:#3a2430;color:#ffeef2}
 .p{display:inline-block;padding:4px 8px;border-radius:999px;background:#311521;color:#ffd9e1;font-size:12px;margin-right:6px}
 </style></head><body><div class="w">
 <div class="c">
-  <div style="font-size:28px;font-weight:800">lg_apa102 Recovery</div>
+  <div style="font-size:28px;font-weight:800">apa102 Recovery</div>
   <div class="m">Signed OTA recovery for ESP32-S2 Mini. The bootloader stays untouched.</div>
 </div>
 <div class="c">
@@ -121,7 +124,9 @@ static void setLastError(const char *msg) {
 
 static void startAp() {
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(LB_DEFAULT_AP_SSID, LB_DEFAULT_AP_PASS);
+  const String apSsid = cfg.deviceName[0] ? String(cfg.deviceName) : lbDefaultApSsid();
+  const String apPass = lbDefaultApPass();
+  WiFi.softAP(apSsid.c_str(), apPass.c_str());
   apActive = true;
 }
 
@@ -419,6 +424,8 @@ static void setupWeb() {
 }
 
 void setup() {
+  recoveryResetMagic = 0;
+  recoveryResetMagicInv = 0;
   lbLoadConfig(&cfg);
   lbLoadApiPin(apiPin, sizeof(apiPin));
   if (!lbValidateConfig(&cfg)) lbSetDefaults(&cfg);
